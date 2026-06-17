@@ -1,12 +1,4 @@
 <!-- Awin verification 2932723 -->
-<header style="text-align: center; padding: 20px 20px 30px 20px; font-family: sans-serif;">
-    <h1 style="margin: 0; font-size: 42px; font-weight: 800; color: #2D5A27; letter-spacing: 2px;">
-        OFFERTA - LOGICA
-    </h1>
-    <p style="margin: 5px 0 0 0; color: #444; font-size: 16px; letter-spacing: 0.5px;">
-        La scelta intelligente per le tue utenze
-    </p>
-</header>
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -354,13 +346,14 @@
         <p style="text-align: center; font-size: 13px; color: var(--accent); font-weight: bold; margin-bottom: 15px; font-style: italic;">
             💡 Hai inserito i tuoi dati personalizzati? Clicca qui sotto per elaborare il confronto su misura!
         </p>
-        
-    </div>
     </div> <!-- 2. CHIUSURA DEL CONTENITORE GENERALE DELLA GRIGLIA -->
 
        
    
-    
+    <!-- Pulsante Calcolatore inserito sotto le ultime righe dei due riquadri -->
+    <p style="text-align: center; font-size: 13px; color: var(--accent); font-weight: bold; margin-bottom: 15px; font-style: italic;">
+        💡 Non conosci i tuoi dati? Useremo i consumi e i prezzi medi nazionali per mostrarti le migliori offerte!
+    </p>
     <button class="btn-calc" onclick="avviaComparazioneDati()">ELABORA E CONFRONTA LE OFFERTE</button>
 
     <!-- Risultato della Comparazione (Appare dopo il click) -->
@@ -501,21 +494,9 @@ function avviaComparazioneDati() {
             // 🆕 ULTIME AGGIUNTE: ENEL, ENI PLENITUDE E ALPERIA
             { id: 10, nome: "Enel Fix Web Luce e Gas", lucePrezzo: 0.1390, gasPrezzo: 0.4900, corrispettivoAnnuo: 288.00, tipo: "fisso", fornitura: "dual" },
             { id: 11, nome: "Eni Plenitude Fix Scontata", lucePrezzo: 0.1440, gasPrezzo: 0.5678, corrispettivoAnnuo: 180.00, tipo: "fisso", fornitura: "dual" },
-            { id: 12, nome: "Alperia Smile Easy / Start", lucePrezzo: 0.1027, gasPrezzo: 0.4500, corrispettivoAnnuo: 239.40, tipo: "fisso", fornitura: "dual" },
-            { id: 13, nome: "Sorgenia Next Energy Smart", lucePrezzo: 0.1300, gasPrezzo: 0.5200, corrispettivoAnnuo: 258.00, tipo: "fisso", fornitura: "dual" },
+            { id: 12, nome: "Alperia Smile Easy / Start", lucePrezzo: 0.1027, gasPrezzo: 0.4500, corrispettivoAnnuo: 239.40, tipo: "fisso", fornitura: "dual" }
         ];
 
-        const COSTI_SCENARIO = {
-    LUCE: {
-        PUN_MEDIO: 0.110,      // €/kWh
-        ONERI_TRASPORTO: 0.088, // €/kWh
-        PERDITE_RETE: 1.102     // Coefficiente moltiplicativo
-    },
-    GAS: {
-        PSV_MEDIO: 0.440,      // €/Smc
-        ONERI_TRASPORTO: 0.360  // €/Smc
-    }
-};
         partnerDati.forEach(partner => {
             const containerRisparmio = document.getElementById(`risparmio-partner-${partner.id}`);
             const schedaPartnerCompleta = containerRisparmio ? containerRisparmio.closest('.partner-vertical-card') : null;
@@ -532,20 +513,12 @@ function avviaComparazioneDati() {
                     schedaPartnerCompleta.style.display = "flex";
                     if (containerRisparmio) containerRisparmio.style.display = "block";
 
-                    // 💡 Calcolo intelligente: gestisce Fissi e Variabili con i dati ufficiali
-                    const quotaFissaMensile = (partner.corrispettivoAnnuo / (tariffaInEssereFornitura === "dual" ? 2 : 1));
-                    
+                    // 💡 Calcolo intelligente: esclude il gas o la luce se siamo in modalità tariffe separate e uno dei consumi è a zero
                     const spesaPartnerLuce = (cLuceAtt > 0 && partner.lucePrezzo > 0) ? 
-                        (partner.tipo === "fisso" ? 
-                            ((cLuceAtt * (partner.lucePrezzo + COSTI_SCENARIO.LUCE.ONERI_TRASPORTO)) + quotaFissaMensile) : 
-                            ((cLuceAtt * ((partner.lucePrezzo + COSTI_SCENARIO.LUCE.PUN_MEDIO) * COSTI_SCENARIO.LUCE.PERDITE_RETE + COSTI_SCENARIO.LUCE.ONERI_TRASPORTO)) + quotaFissaMensile)
-                        ) : 0;
+                        ((cLuceAtt * partner.lucePrezzo) + (partner.corrispettivoAnnuo / (tariffaInEssereFornitura === "dual" ? 2 : 1)) + uLuceAtt) : 0;
                         
                     const spesaPartnerGas = (cGasAtt > 0 && partner.gasPrezzo > 0) ? 
-                        (partner.tipo === "fisso" ? 
-                            ((cGasAtt * (partner.gasPrezzo + COSTI_SCENARIO.GAS.ONERI_TRASPORTO)) + quotaFissaMensile) : 
-                            ((cGasAtt * (partner.gasPrezzo + COSTI_SCENARIO.GAS.PSV_MEDIO + COSTI_SCENARIO.GAS.ONERI_TRASPORTO)) + quotaFissaMensile)
-                        ) : 0;
+                        ((cGasAtt * partner.gasPrezzo) + (partner.corrispettivoAnnuo / (tariffaInEssereFornitura === "dual" ? 2 : 1)) + uGasAtt) : 0;
                         
                     const spesaPartnerTotale = spesaPartnerLuce + spesaPartnerGas;
                     const differenzaContabile = spesaPartnerTotale - spesaAttuale;
@@ -566,7 +539,7 @@ function avviaComparazioneDati() {
             }
         });
 
-// 6. Box informativo sulla metodologia (sostituisce il verdetto)
+        // 6. Box informativo sulla metodologia (sostituisce il verdetto)
         if (areaRisultati) {
             areaRisultati.style.display = "block";
             areaRisultati.innerHTML = `
@@ -579,6 +552,7 @@ function avviaComparazioneDati() {
                 </div>
             `;
         }
+    
         // 7. Se ha inserito l'offerta a destra, mostra il verdetto singolo
         if (areaRisultati) areaRisultati.style.display = "flex";
         
@@ -594,7 +568,7 @@ function avviaComparazioneDati() {
             const scatolaVerdetto = document.querySelector('.verdetto-box');
             if (scatolaVerdetto) scatolaVerdetto.className = "verdetto-box success";
             if (badgeNumero) badgeNumero.innerText = "- " + bilancio.toFixed(2) + " € / anno";
-            if (testoDescrizione) testoDescrizione.innerText = "*Stima basata su medie ARERA Q2 2026. Non costituisce offerta contrattuale.";
+            if (testoDescrizione) testoDescrizione.innerText = "Le nuove offerte proposte, sono convenienti rispetto ad una tariffa media nazionale.";
             
             let nomeFornitore = document.getElementById('nome-fornitore-nuov') ? document.getElementById('nome-fornitore-nuov').value.trim() : ""; 
             let linkDestinazione = "https://google.com"; // Link di ripiego predefinito
@@ -676,15 +650,15 @@ function avviaComparazioneDati() {
         </div>
 
         <!-- Offerta Consigliata 5: Iren Fissa 36 Mesi -->
-<div class="partner-vertical-card" style="background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;">
-    <div class="partner-meta">
-        <div class="partner-title" style="font-size: 16px; font-weight: bold; color: var(--text-color);">Iren Fissa 36 Mesi</div>
-        <div class="partner-details" style="font-size: 13px; color: var(--text-muted); margin-top: 2px;">Prezzi. Luce: 0,1000 €/kWh | Gas: 0,4300 €/Smc. Corrispettivo annuo: 240€ (Bloccato 3 Anni)</div>
-        <div id="risparmio-partner-5" style="font-size: 14px; font-weight: bold; color: var(--primary); margin-top: 5px; display: none;"></div>
-    </div>
-    <a id="link-partner-5" href="https://www.irenlucegas.it/landing/iren-36-ads" target="_blank" style="background: var(--dark-btn); color: white; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: bold; white-space: nowrap;">Vedi Offerta</a>
-</div>
-        
+        <div class="partner-vertical-card" style="background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;">
+            <div class="partner-meta">
+                <div class="partner-title" style="font-size: 16px; font-weight: bold; color: var(--text-color);">Iren Fissa 36 Mesi</div>
+                <div class="partner-details" style="font-size: 13px; color: var(--text-muted); margin-top: 2px;">Prezzi. Luce: 0,1000 €/kWh | Gas: 0,4300 €/Smc. Corrispettivo annuo: 240€ (Bloccato 3 Anni)</div>
+                <div id="risparmio-partner-5" style="font-size: 14px; font-weight: bold; color: var(--primary); margin-top: 5px; display: none;"></div>
+            </div>
+            <a id="link-partner-5" href="https://irenluceegas.it" target="_blank" style="background: var(--dark-btn); color: white; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: bold; white-space: nowrap;">Vedi Offerta</a>
+        </div>
+
         <!-- Offerta Consigliata 6: neN Luce Dieci -->
         <div class="partner-vertical-card" style="background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;">
             <div class="partner-meta">
@@ -752,18 +726,6 @@ function avviaComparazioneDati() {
                 <div id="risparmio-partner-12" style="font-size: 14px; font-weight: bold; color: var(--primary); margin-top: 5px; display: none;"></div>
             </div>
             <a id="link-partner-12" href="https://alperia.eu" target="_blank" style="background: var(--dark-btn); color: white; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: bold; white-space: nowrap;">Vedi Offerta</a>
-        </div>
-
-        <!-- Offerta Consigliata 13: Sorgenia Next Energy Smart -->
-        <div class="partner-vertical-card" style="background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
-            <div class="partner-meta">
-                <div class="partner-title" style="font-size: 16px; font-weight: bold; color: var(--text-color);">Sorgenia Next Energy Smart</div>
-                <div class="partner-details" style="font-size: 13px; color: var(--text-muted); margin-top: 2px;">Prezzi. Luce: 0,1300 €/kWh | Gas: 0,5200 €/Smc. Corrispettivo annuo: 258€ (Fisso 12 Mesi)</div>
-                <div id="risparmio-partner-13" style="font-size: 14px; font-weight: bold; color: var(--primary); margin-top: 5px; display: none;"></div>
-           </div>
-           <a id="link-partner-13" href="https://www.sorgenia.it/partnership-sorgenia-offerte" target="_blank" style="background: var(--dark-btn); color: white; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: bold; white-space: nowrap;">Vedi Offerta</a>
-        </div>
-
           </div>
      </div>
   </div>
@@ -776,47 +738,30 @@ function avviaComparazioneDati() {
       const blocchiInferiori = document.getElementById("master-blocchi-inferiori");
       const pulsanteCalcoloManuale = document.getElementById("master-pulsante-calc-manuale");
 
-      // FUNZIONE DI RESET: Nasconde il verdetto e spegne TUTTE le schede partner aperte
-      function azzeraEAscondiTutto() {
-          // 1. Nascondiamo l'area del verdetto in fondo
-          const areaRisultati = document.getElementById("results-area");
-          if (areaRisultati) {
-              areaRisultati.style.setProperty("display", "none", "important");
-          }
-
-          // 2. Prendiamo tutte le schede dei partner e le nascondiamo una per una
-          const schede = document.querySelectorAll(".partner-vertical-card");
-          schede.forEach(function(scheda) {
-              scheda.style.setProperty("display", "none", "important");
-          });
-
-          // 3. Svuotiamo i testi dei singoli risparmi interni per sicurezza
-          for (let i = 1; i <= 12; i++) {
-              const containerRisparmio = document.getElementById("risparmio-partner-" + i);
-              if (containerRisparmio) {
-                  containerRisparmio.innerText = "";
-              }
-          }
-      }
-
       function resetBotteonStyles() {
-          if(btnMedi) btnMedi.style.background = "var(--dark-btn)";
-          if(btnPrecisi) btnPrecisi.style.background = "var(--accent)";
+          if(btnMedi) {
+              btnMedi.style.background = "var(--dark-btn)";
+              btnMedi.style.boxShadow = "none";
+          }
+          if(btnPrecisi) {
+              btnPrecisi.style.background = "var(--accent)";
+              btnPrecisi.style.boxShadow = "none";
+          }
       }
 
       // 1. CLIC SU: "Non conosco i miei consumi"
       if(btnMedi) {
           btnMedi.addEventListener("click", function() {
-              azzeraEAscondiTutto(); // Pulizia totale prima di iniziare
-
-              if(btnMedi) btnMedi.style.background = "var(--dark-btn-hover)";
-              if(btnPrecisi) btnPrecisi.style.background = "var(--accent)";
+              resetBotteonStyles();
+              btnMedi.style.background = "var(--dark-btn-hover)";
+              btnMedi.style.boxShadow = "inset 0 0 5px rgba(0,0,0,0.3)";
               
+              // Nascondiamo l'interfaccia manuale per l'utente
               if(containerTendine) containerTendine.style.display = "none";
               if(blocchiInferiori) blocchiInferiori.style.display = "none";
               if(pulsanteCalcoloManuale) pulsanteCalcoloManuale.style.display = "none";
 
-              // Configurazione parametri master superiori
+              // A. Configura le tendine Master superiori
               if(document.getElementById("master-luce-consumo")) document.getElementById("master-luce-consumo").value = "2700";
               if(document.getElementById("master-luce-potenza")) document.getElementById("master-luce-potenza").value = "3";
               if(document.getElementById("master-luce-tipo")) document.getElementById("master-luce-tipo").value = "fisso";
@@ -824,39 +769,42 @@ function avviaComparazioneDati() {
               if(document.getElementById("master-tipo-fornitura")) document.getElementById("master-tipo-fornitura").value = "dual";
               if(document.getElementById("master-gas-regione")) document.getElementById("master-gas-regione").value = "nord-ovest";
 
+              // B. SELEZIONE FORNITORI DI DEFAULT (Fondamentale se la funzione nativa li richiede)
               if(document.getElementById("nome-fornitore-att")) document.getElementById("nome-fornitore-att").value = "enel";
               if(document.getElementById("nome-fornitore-nuov")) document.getElementById("nome-fornitore-nuov").value = "eni";
 
-              // Configurazione parametri standard basati su Benchmark ARERA Q2 2026
-        const campiValori = {
-            "in-luce-cons-att": "2700", 
-            "in-luce-prezzo-att": "0.2450", 
-            "in-luce-fisso-att": "0",       
-            "in-luce-universali-att": "0",  
-            
-            "in-gas-cons-att": "1400",      
-            "in-gas-prezzo-att": "0.9800",  
-            "in-gas-fisso-att": "0",        
-            "in-gas-universali-att": "0",  
-            
-            "in-luce-cons-nuov": "2700", 
-            "in-luce-prezzo-nuov": "0.1450", 
-            "in-luce-fisso-nuov": "144", 
-            "in-luce-universali-nuov": "150",
-            
-            "in-gas-cons-nuov": "1400", 
-            "in-gas-prezzo-nuov": "0.6500", 
-            "in-gas-fisso-nuov": "120", 
-            "in-gas-universali-att": "150"
-        };
-              for (let id in campiValori) {
-                  if(document.getElementById(id)) document.getElementById(id).value = campiValori[id];
-              }
+              // C. AUTOCOMPILA TUTTI I CAMPI NUMERICI INFERIORI (Valori stimati stabili)
+              // Fornitura Attuale
+              if(document.getElementById("in-luce-cons-att")) document.getElementById("in-luce-cons-att").value = "2700";
+              if(document.getElementById("in-luce-prezzo-att")) document.getElementById("in-luce-prezzo-att").value = "0.1500";
+              if(document.getElementById("in-luce-fisso-att")) document.getElementById("in-luce-fisso-att").value = "144";
+              if(document.getElementById("in-luce-universali-att")) document.getElementById("in-luce-universali-att").value = "150";
 
-              // Mostriamo l'area e lanciamo il calcolo automatico nativo
+              if(document.getElementById("in-gas-cons-att")) document.getElementById("in-gas-cons-att").value = "700";
+              if(document.getElementById("in-gas-prezzo-att")) document.getElementById("in-gas-prezzo-att").value = "0.6800";
+              if(document.getElementById("in-gas-fisso-att")) document.getElementById("in-gas-fisso-att").value = "120";
+              if(document.getElementById("in-gas-universali-att")) document.getElementById("in-gas-universali-att").value = "150";
+
+              // Nuova Offerta
+              if(document.getElementById("in-luce-cons-nuov")) document.getElementById("in-luce-cons-nuov").value = "2700";
+              if(document.getElementById("in-luce-prezzo-nuov")) document.getElementById("in-luce-prezzo-nuov").value = "0.1450";
+              if(document.getElementById("in-luce-fisso-nuov")) document.getElementById("in-luce-fisso-nuov").value = "144";
+              if(document.getElementById("in-luce-universali-nuov")) document.getElementById("in-luce-universali-nuov").value = "150";
+
+              if(document.getElementById("in-gas-cons-nuov")) document.getElementById("in-gas-cons-nuov").value = "700";
+              if(document.getElementById("in-gas-prezzo-nuov")) document.getElementById("in-gas-prezzo-nuov").value = "0.6500";
+              if(document.getElementById("in-gas-fisso-nuov")) document.getElementById("in-gas-fisso-nuov").value = "120";
+              if(document.getElementById("in-gas-universali-nuov")) document.getElementById("in-gas-universali-nuov").value = "150";
+
+              // D. Forza l'apertura visiva dell'area risultati
               const areaRisultati = document.getElementById("results-area");
               if (areaRisultati) areaRisultati.style.display = "block";
-              
+
+              // E. Chiude eventuali pop-up aperti che bloccano lo script
+              const tariffaModal = document.getElementById("tariffa-modal");
+              if (tariffaModal) tariffaModal.style.display = "none";
+
+              // F. Avvia il calcolatore originale
               if (typeof avviaComparazioneDati === "function") {
                   avviaComparazioneDati();
               }
@@ -866,20 +814,17 @@ function avviaComparazioneDati() {
       // 2. CLIC SU: "Conosco i miei consumi"
       if(btnPrecisi) {
           btnPrecisi.addEventListener("click", function() {
-              // 🎯 Sotto la tua intuizione: cancelliamo la visibilità di tutte le offerte precedenti!
-              azzeraEAscondiTutto();
-
-              if(btnMedi) btnMedi.style.background = "var(--dark-btn)";
-              if(btnPrecisi) btnPrecisi.style.background = "var(--dark-btn-hover)";
+              resetBotteonStyles();
+              btnPrecisi.style.background = "var(--dark-btn-hover)";
               
-              // Svuotiamo i moduli per permettere la digitazione da zero
+              // Svuota i campi pre-compilati per lasciare spazio all'utente
               const inputs = blocchiInferiori ? blocchiInferiori.querySelectorAll("input") : [];
-              inputs.forEach(function(input) { input.value = ""; });
+              inputs.forEach(input => input.value = "");
               
               if(document.getElementById("nome-fornitore-att")) document.getElementById("nome-fornitore-att").value = "";
               if(document.getElementById("nome-fornitore-nuov")) document.getElementById("nome-fornitore-nuov").value = "";
 
-              // Rendiamo visibile la grafica dei blocchi manuali e il suo unico pulsante verde
+              // Mostriamo l'interfaccia manuale
               if(containerTendine) containerTendine.style.display = "block";
               if(blocchiInferiori) blocchiInferiori.style.display = "grid";
               if(pulsanteCalcoloManuale) pulsanteCalcoloManuale.style.display = "block";
@@ -888,7 +833,7 @@ function avviaComparazioneDati() {
   });
   </script>
 
-<footer style="text-align: center; padding: 40px 20px; color: #666; font-family: sans-serif; border-top: 1px solid #eee; margin-top: 50px;">
+  <footer style="text-align: center; padding: 40px 20px; color: #666; font-family: sans-serif; border-top: 1px solid #eee; margin-top: 50px;">
   <!-- Copyright -->
   <p style="font-size: 14px; margin-bottom: 20px;">© 2026 Calcolatore Offerte Energia. Tutti i diritti riservati.</p>
   
@@ -902,6 +847,5 @@ function avviaComparazioneDati() {
 <script type="text/javascript" src="https://embeds.iubenda.com/widgets/7a8d1e4e-6d87-44e3-9842-5e8991323410.js"></script></head>
 <body>
 </footer>
-
   </body>
 </html>
