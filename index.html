@@ -489,7 +489,8 @@ function avviaComparazioneDati() {
             // 🆕 ULTIME AGGIUNTE: ENEL, ENI PLENITUDE E ALPERIA
             { id: 10, nome: "Enel Fix Web Luce e Gas", lucePrezzo: 0.1390, gasPrezzo: 0.4900, corrispettivoAnnuo: 288.00, tipo: "fisso", fornitura: "dual" },
             { id: 11, nome: "Eni Plenitude Fix Scontata", lucePrezzo: 0.1440, gasPrezzo: 0.5678, corrispettivoAnnuo: 180.00, tipo: "fisso", fornitura: "dual" },
-            { id: 12, nome: "Alperia Smile Easy / Start", lucePrezzo: 0.1027, gasPrezzo: 0.4500, corrispettivoAnnuo: 239.40, tipo: "fisso", fornitura: "dual" }
+            { id: 12, nome: "Alperia Smile Easy / Start", lucePrezzo: 0.1027, gasPrezzo: 0.4500, corrispettivoAnnuo: 239.40, tipo: "fisso", fornitura: "dual" },
+            { id: 13, nome: "Sorgenia Next Energy Smart", lucePrezzo: 0.1300, gasPrezzo: 0.5200, corrispettivoAnnuo: 258.00, tipo: "fisso", fornitura: "dual" },
         ];
 
         partnerDati.forEach(partner => {
@@ -722,6 +723,18 @@ function avviaComparazioneDati() {
             </div>
             <a id="link-partner-12" href="https://alperia.eu" target="_blank" style="background: var(--dark-btn); color: white; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: bold; white-space: nowrap;">Vedi Offerta</a>
           </div>
+    
+        <!-- Offerta Consigliata 13: Sorgenia Next Energy Smart -->
+        <div class="partner-vertical-card" style="background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+            <div class="partner-meta">
+                <div class="partner-title" style="font-size: 16px; font-weight: bold; color: var(--text-color);">Sorgenia Next Energy Smart</div>
+                <div class="partner-details" style="font-size: 13px; color: var(--text-muted); margin-top: 2px;">Prezzi. Luce: 0,1300 €/kWh | Gas: 0,5200 €/Smc. Corrispettivo annuo: 258€ (Fisso 12 Mesi)</div>
+                <div id="risparmio-partner-13" style="font-size: 14px; font-weight: bold; color: var(--primary); margin-top: 5px; display: none;"></div>
+           </div>
+           <a id="link-partner-13" href="https://www.sorgenia.it/partnership-sorgenia-offerte" target="_blank" style="background: var(--dark-btn); color: white; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: bold; white-space: nowrap;">Vedi Offerta</a>
+        </div>
+
+        <div>
      </div>
   </div>
 
