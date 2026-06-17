@@ -505,6 +505,17 @@ function avviaComparazioneDati() {
             { id: 13, nome: "Sorgenia Next Energy Smart", lucePrezzo: 0.1300, gasPrezzo: 0.5200, corrispettivoAnnuo: 258.00, tipo: "fisso", fornitura: "dual" },
         ];
 
+        const COSTI_SCENARIO = {
+    LUCE: {
+        PUN_MEDIO: 0.110,      // €/kWh
+        ONERI_TRASPORTO: 0.088, // €/kWh
+        PERDITE_RETE: 1.102     // Coefficiente moltiplicativo
+    },
+    GAS: {
+        PSV_MEDIO: 0.440,      // €/Smc
+        ONERI_TRASPORTO: 0.360  // €/Smc
+    }
+};
         partnerDati.forEach(partner => {
             const containerRisparmio = document.getElementById(`risparmio-partner-${partner.id}`);
             const schedaPartnerCompleta = containerRisparmio ? containerRisparmio.closest('.partner-vertical-card') : null;
@@ -521,12 +532,20 @@ function avviaComparazioneDati() {
                     schedaPartnerCompleta.style.display = "flex";
                     if (containerRisparmio) containerRisparmio.style.display = "block";
 
-                    // 💡 Calcolo intelligente: esclude il gas o la luce se siamo in modalità tariffe separate e uno dei consumi è a zero
+                    // 💡 Calcolo intelligente: gestisce Fissi e Variabili con i dati ufficiali
+                    const quotaFissaMensile = (partner.corrispettivoAnnuo / (tariffaInEssereFornitura === "dual" ? 2 : 1));
+                    
                     const spesaPartnerLuce = (cLuceAtt > 0 && partner.lucePrezzo > 0) ? 
-                        ((cLuceAtt * partner.lucePrezzo) + (partner.corrispettivoAnnuo / (tariffaInEssereFornitura === "dual" ? 2 : 1)) + uLuceAtt) : 0;
+                        (partner.tipo === "fisso" ? 
+                            ((cLuceAtt * (partner.lucePrezzo + COSTI_SCENARIO.LUCE.ONERI_TRASPORTO)) + quotaFissaMensile) : 
+                            ((cLuceAtt * ((partner.lucePrezzo + COSTI_SCENARIO.LUCE.PUN_MEDIO) * COSTI_SCENARIO.LUCE.PERDITE_RETE + COSTI_SCENARIO.LUCE.ONERI_TRASPORTO)) + quotaFissaMensile)
+                        ) : 0;
                         
                     const spesaPartnerGas = (cGasAtt > 0 && partner.gasPrezzo > 0) ? 
-                        ((cGasAtt * partner.gasPrezzo) + (partner.corrispettivoAnnuo / (tariffaInEssereFornitura === "dual" ? 2 : 1)) + uGasAtt) : 0;
+                        (partner.tipo === "fisso" ? 
+                            ((cGasAtt * (partner.gasPrezzo + COSTI_SCENARIO.GAS.ONERI_TRASPORTO)) + quotaFissaMensile) : 
+                            ((cGasAtt * (partner.gasPrezzo + COSTI_SCENARIO.GAS.PSV_MEDIO + COSTI_SCENARIO.GAS.ONERI_TRASPORTO)) + quotaFissaMensile)
+                        ) : 0;
                         
                     const spesaPartnerTotale = spesaPartnerLuce + spesaPartnerGas;
                     const differenzaContabile = spesaPartnerTotale - spesaAttuale;
@@ -547,16 +566,18 @@ function avviaComparazioneDati() {
             }
         });
 
-        // 6. Controllo se l'utente non ha inserito dati nella sua nuova offerta a destra (campi vuoti)
-        if (pLuceNuov === 0 && pGasNuov === 0) {
-            if (areaRisultati) areaRisultati.style.display = "none"; // Nasconde il verdetto singolo generico
-            
-            const sezioneFornitori = document.querySelector('.fornitori-consigliati-section');
-            if (sezioneFornitori) {
-                sezioneFornitori.style.display = "block"; // 🆕 RENDE VISIBILE LA SEZIONE ESTERNA
-                sezioneFornitori.scrollIntoView({ behavior: 'smooth' });
-            }
-            return; 
+// 6. Box informativo sulla metodologia (sostituisce il verdetto)
+        if (areaRisultati) {
+            areaRisultati.style.display = "block";
+            areaRisultati.innerHTML = `
+                <div style="padding: 20px; background-color: #f9f9f9; border-left: 4px solid #007bff; margin-bottom: 20px;">
+                    <h4 style="margin: 0 0 5px 0; color: #333; font-size: 1rem;">Metodologia di calcolo</h4>
+                    <p style="margin: 0; color: #555; font-size: 0.85rem;">
+                        I risparmi stimati sono calcolati utilizzando i costi medi di sistema definiti da <strong>ARERA per il trimestre Q2 2026</strong>. 
+                        Questi valori servono per offrire una base di confronto omogenea tra le diverse proposte.
+                    </p>
+                </div>
+            `;
         }
         // 7. Se ha inserito l'offerta a destra, mostra il verdetto singolo
         if (areaRisultati) areaRisultati.style.display = "flex";
@@ -573,7 +594,7 @@ function avviaComparazioneDati() {
             const scatolaVerdetto = document.querySelector('.verdetto-box');
             if (scatolaVerdetto) scatolaVerdetto.className = "verdetto-box success";
             if (badgeNumero) badgeNumero.innerText = "- " + bilancio.toFixed(2) + " € / anno";
-            if (testoDescrizione) testoDescrizione.innerText = "Le nuove offerte proposte, sono convenienti rispetto ad una tariffa media nazionale.";
+            if (testoDescrizione) testoDescrizione.innerText = "*Stima basata su medie ARERA Q2 2026. Non costituisce offerta contrattuale.";
             
             let nomeFornitore = document.getElementById('nome-fornitore-nuov') ? document.getElementById('nome-fornitore-nuov').value.trim() : ""; 
             let linkDestinazione = "https://google.com"; // Link di ripiego predefinito
@@ -806,12 +827,28 @@ function avviaComparazioneDati() {
               if(document.getElementById("nome-fornitore-att")) document.getElementById("nome-fornitore-att").value = "enel";
               if(document.getElementById("nome-fornitore-nuov")) document.getElementById("nome-fornitore-nuov").value = "eni";
 
-              const campiValori = {
-                  "in-luce-cons-att": "2700", "in-luce-prezzo-att": "0.1500", "in-luce-fisso-att": "144", "in-luce-universali-att": "150",
-                  "in-gas-cons-att": "700", "in-gas-prezzo-att": "0.6800", "in-gas-fisso-att": "120", "in-gas-universali-att": "150",
-                  "in-luce-cons-nuov": "2700", "in-luce-prezzo-nuov": "0.1450", "in-luce-fisso-nuov": "144", "in-luce-universali-nuov": "150",
-                  "in-gas-cons-nuov": "700", "in-gas-prezzo-nuov": "0.6500", "in-gas-fisso-nuov": "120", "in-gas-universali-nuov": "150"
-              };
+              // Configurazione parametri standard basati su Benchmark ARERA Q2 2026
+        const campiValori = {
+            "in-luce-cons-att": "2700", 
+            "in-luce-prezzo-att": "0.2450", 
+            "in-luce-fisso-att": "0",       
+            "in-luce-universali-att": "0",  
+            
+            "in-gas-cons-att": "1400",      
+            "in-gas-prezzo-att": "0.9800",  
+            "in-gas-fisso-att": "0",        
+            "in-gas-universali-att": "0",  
+            
+            "in-luce-cons-nuov": "2700", 
+            "in-luce-prezzo-nuov": "0.1450", 
+            "in-luce-fisso-nuov": "144", 
+            "in-luce-universali-nuov": "150",
+            
+            "in-gas-cons-nuov": "1400", 
+            "in-gas-prezzo-nuov": "0.6500", 
+            "in-gas-fisso-nuov": "120", 
+            "in-gas-universali-att": "150"
+        };
               for (let id in campiValori) {
                   if(document.getElementById(id)) document.getElementById(id).value = campiValori[id];
               }
@@ -850,7 +887,7 @@ function avviaComparazioneDati() {
       }
   });
   </script>
-    
+
 <footer style="text-align: center; padding: 40px 20px; color: #666; font-family: sans-serif; border-top: 1px solid #eee; margin-top: 50px;">
   <!-- Copyright -->
   <p style="font-size: 14px; margin-bottom: 20px;">© 2026 Calcolatore Offerte Energia. Tutti i diritti riservati.</p>
